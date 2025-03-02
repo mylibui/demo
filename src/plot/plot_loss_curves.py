@@ -200,7 +200,7 @@ def plot_loss_curves(
     
     # Speichern des Plots in einem Google Drive-Ordner
     if save_path is None:
-        folder_path = os.path.join('Results', f'{experiment_name}/loss_curves/')
+        folder_path = os.path.join('Results', f'{experiment_name}')
 
         # Erstelle den Ordner, falls er nicht existiert
         if not os.path.exists(folder_path):

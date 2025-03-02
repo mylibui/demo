@@ -49,7 +49,7 @@ def plot_roc_auc_curve(
     save_path = None
     if save_path is None:
         # Basisverzeichnis für Google Drive
-        base_dir = "/content/drive/MyDrive"
+        base_dir = "Results"
         folder_path = os.path.join(base_dir, experiment_name)
 
         # Erstelle den Ordner, falls er nicht existiert

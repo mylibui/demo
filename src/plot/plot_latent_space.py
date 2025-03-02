@@ -60,6 +60,7 @@ def plot_latent_space(
         latent_2d = latent_representation  # Verwende direkt die ersten zwei Dimensionen, wenn latent_dim <= 2
 
     # Speichern des Plots in einem Google Drive-Ordner
+    save_path = None
     if save_path is None:
         # Basisverzeichnis für Google Drive
         base_dir = "Results"
