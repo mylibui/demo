@@ -26,6 +26,7 @@ class SupervisedAE(Model):
         l2_lambda: float = 0.01  # L2-Regularisierungsfaktor für den Klassifikator
     ):
         super(SupervisedAE, self).__init__()
+        self.type = 'sae'
 
         # Aktivierungsfunktion direkt definieren
         if activation == 'mish':

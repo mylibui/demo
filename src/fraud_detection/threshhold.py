@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.metrics import f1_score
 from typing import Union, Optional, Tuple
 
-from ..models import calculate_reconstruction_error
+from ..models import calculate_reconstruction_error, UnsupervisedVAE, UnsupervisedAE, SupervisedAE, SupervisedVAE
 
 def find_optimal_threshold(
     model: Union['UnsupervisedAE'

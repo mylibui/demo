@@ -24,6 +24,7 @@ class UnsupervisedVAE(Model):
         kl_weight: float = 1.0
     ):
         super(UnsupervisedVAE, self).__init__()
+        self.type = 'svae'
 
         # Aktivierungsfunktion direkt definieren
         if activation == 'mish':

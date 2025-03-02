@@ -2,6 +2,11 @@ from typing import Union
 import numpy as np
 import tensorflow as tf
 
+from .supervised_ae import SupervisedAE
+from .supervised_vae import SupervisedVAE
+from .unsupervised_ae import UnsupervisedAE
+from .unsupervised_vae import UnsupervisedVAE
+
 def calculate_reconstruction_error(
     model: Union['UnsupervisedAE'
                  , 'UnsupervisedVAE'

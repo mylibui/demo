@@ -1,8 +1,11 @@
 import os
-from typing import Union, Optional
+from typing import Union
 import numpy as np
+from sklearn.decomposition import PCA
 import tensorflow as tf
 import matplotlib.pyplot as plt
+
+from ..models import UnsupervisedAE, UnsupervisedVAE, SupervisedAE, SupervisedVAE
 
 def plot_latent_space(
     model: Union['UnsupervisedAE'
@@ -11,8 +14,7 @@ def plot_latent_space(
                  ],
     X: np.ndarray,
     y: np.ndarray,
-    save_path: Optional[str] = None,
-    folder_name: str = "vae_results/latent_space"
+    experiment_name: str,
 ) -> None:
     """
     Plottet den latenten Raum eines SupervisedAE-Modells als 2D-Scatterplot und speichert das Plot als PNG in einem Google Drive-Ordner.
@@ -60,15 +62,15 @@ def plot_latent_space(
     # Speichern des Plots in einem Google Drive-Ordner
     if save_path is None:
         # Basisverzeichnis für Google Drive
-        base_dir = "/content/drive/MyDrive"
-        folder_path = os.path.join(base_dir, folder_name)
+        base_dir = "Results"
+        folder_path = os.path.join(base_dir, experiment_name)
 
         # Erstelle den Ordner, falls er nicht existiert
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
      # Generiere einen eindeutigen Dateinamen basierend auf dem Modelltyp
-        model_name = model.__class__.__name__
+        model_name: str = model.type
         import datetime
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         save_path = os.path.join(folder_path, f"latent_space_{model_name}_{timestamp}.png")
@@ -77,7 +79,7 @@ def plot_latent_space(
     plt.figure(figsize=(10, 6))
     scatter = plt.scatter(latent_2d[:, 0], latent_2d[:, 1], c=y, cmap='bwr', alpha=0.5)
     plt.colorbar(scatter, label='Klasse (0 = Nicht Fraud, 1 = Fraud)')
-    plt.title(f"Latenter Raum des {model_name}-Modells")
+    plt.title(f"Latenter Raum des {model_name.upper()}-Modells")
     plt.xlabel("Latente Dimension 1")
     plt.ylabel("Latente Dimension 2")
 

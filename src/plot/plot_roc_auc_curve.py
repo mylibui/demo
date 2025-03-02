@@ -2,6 +2,10 @@ import os
 from typing import Union, Optional
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import auc, roc_curve
+
+from ..models import UnsupervisedAE, UnsupervisedVAE, SupervisedAE, SupervisedVAE, calculate_reconstruction_error
+from ..fraud_detection import find_optimal_threshold
 
 def plot_roc_auc_curve(
     model: Union['UnsupervisedAE'
@@ -10,9 +14,8 @@ def plot_roc_auc_curve(
                  ],
     X: np.ndarray,
     y: np.ndarray,
+    experiment_name: str,
     threshold: Optional[float] = None,
-    save_path: Optional[str] = None,
-    folder_name: str = "vae_results/roc_curves"
 ) -> None:
     """
     Plottet die ROC-AUC-Kurve für ein Modell und speichert das Plot optional in einem Google Drive-Ordner.
@@ -43,10 +46,11 @@ def plot_roc_auc_curve(
     roc_auc = auc(fpr, tpr)
 
     # Speichern des Plots in einem Google Drive-Ordner
+    save_path = None
     if save_path is None:
         # Basisverzeichnis für Google Drive
         base_dir = "/content/drive/MyDrive"
-        folder_path = os.path.join(base_dir, folder_name)
+        folder_path = os.path.join(base_dir, experiment_name)
 
         # Erstelle den Ordner, falls er nicht existiert
         if not os.path.exists(folder_path):

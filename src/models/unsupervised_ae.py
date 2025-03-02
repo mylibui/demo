@@ -22,6 +22,7 @@ class UnsupervisedAE(Model):
         dropout_rate: float = 0.0
     ):
         super(UnsupervisedAE, self).__init__()
+        self.type = 'uae'
 
         # Eingabevalidierung
         if not isinstance(input_dim, int) or input_dim <= 0:

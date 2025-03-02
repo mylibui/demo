@@ -1,17 +1,14 @@
 import tensorflow as tf
-import numpy as np
 import matplotlib.pyplot as plt
 import datetime
-import seaborn as sns
 import os
-from typing import Union, Optional, Tuple, List, Dict
+from typing import Union, Tuple, List, Dict
 
 def plot_loss_curves(
     history: Union[tf.keras.callbacks.History, Dict],
-    model_type: str,  # Standardwert auf 'uae' gesetzt für Flexibilität
+    model_type: str,  
+    experiment_name: str,
     figsize: Tuple[int, int] = (16, 10),
-    save_path: Optional[str] = None,
-    folder_name: str = "vae_results/loss_curves"
 ) -> Tuple[plt.Figure, List[plt.Axes]]:
     """
     Plottet umfassende Loss-Kurven für verschiedene Autoencoder-Modelltypen (UnsupervisedAE, UnsupervisedVAE,
@@ -198,12 +195,12 @@ def plot_loss_curves(
     plt.suptitle(f'Trainingsverlauf - {model_type.upper()} Modell', fontsize=16)
     plt.tight_layout()
     plt.subplots_adjust(top=0.9)  # Platz für den Suptitle
-
+    
+    save_path = None
+    
     # Speichern des Plots in einem Google Drive-Ordner
     if save_path is None:
-        # Basisverzeichnis für Google Drive
-        base_dir = "/content/drive/MyDrive"
-        folder_path = os.path.join(base_dir, folder_name)
+        folder_path = os.path.join('Results', f'{experiment_name}/loss_curves/')
 
         # Erstelle den Ordner, falls er nicht existiert
         if not os.path.exists(folder_path):

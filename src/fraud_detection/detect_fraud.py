@@ -1,7 +1,7 @@
 from typing import Union, Optional
 import numpy as np
 
-from ..models import calculate_reconstruction_error
+from ..models import calculate_reconstruction_error, UnsupervisedVAE, UnsupervisedAE, SupervisedAE, SupervisedVAE
 from .threshhold import find_optimal_threshold
 
 def detect_fraud(

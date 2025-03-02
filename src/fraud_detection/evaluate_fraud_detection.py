@@ -5,6 +5,7 @@ import datetime
 from sklearn.metrics import classification_report, precision_score, recall_score, f1_score, accuracy_score, roc_auc_score
 from typing import Union, Optional,Dict
 
+from ..models import UnsupervisedAE, UnsupervisedVAE, SupervisedAE, SupervisedVAE
 from .detect_fraud import detect_fraud
 from .threshhold import find_optimal_threshold
 
@@ -16,9 +17,9 @@ def evaluate_fraud_detection(
                  ],
     X: np.ndarray,
     y: np.ndarray,
-    threshold: Optional[float] = None,
+    experiment_name: str,
     save_metrics: bool = False,
-    folder_name: str = "vae_results/metrics"
+    threshold: Optional[float] = None,
 ) -> Dict[str, float]:
     """
     Evaluert die Fraud-Detektion, berechnet Metriken und gibt einen Klassifikationsbericht aus.
@@ -74,8 +75,8 @@ def evaluate_fraud_detection(
     # Speichere Metriken in Google Drive, falls gewünscht
     if save_metrics:
         # Basisverzeichnis für Google Drive
-        base_dir = "/content/drive/MyDrive"
-        folder_path = os.path.join(base_dir, folder_name)
+        base_dir = "Results"
+        folder_path = os.path.join(base_dir, experiment_name)
 
         # Erstelle den Ordner, falls er nicht existiert
         if not os.path.exists(folder_path):
@@ -83,7 +84,7 @@ def evaluate_fraud_detection(
 
         # Generiere einen eindeutigen Dateinamen
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        metrics_path = os.path.join(folder_path, f"metrics_{timestamp}.txt")
+        metrics_path = os.path.join(folder_path, f"metrics_{model.type}_{timestamp}.txt")
 
         with open(metrics_path, 'w') as f:
             f.write("Klassifikationsbericht:\n")

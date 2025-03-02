@@ -4,6 +4,9 @@ from typing import Union, Optional
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from ..models import UnsupervisedAE, UnsupervisedVAE, SupervisedAE, SupervisedVAE, calculate_reconstruction_error
+from ..fraud_detection import find_optimal_threshold
+
 
 def plot_reconstruction_analysis(
     model: Union['UnsupervisedAE'
@@ -12,9 +15,8 @@ def plot_reconstruction_analysis(
                  ],
     X: np.ndarray,
     y: np.ndarray,
+    experiment_name: str,
     threshold: Optional[float] = None,
-    save_path: Optional[str] = None,
-    folder_name: str = "vae_results/reconstruction_analysis"
 ) -> None:
     """
     Plottet einen Boxplot und die Verteilung (Histogramm mit Dichte) des Rekonstruktionsfehlers für Fraud und Nicht Fraud in einem Google Drive-Ordner.
@@ -46,10 +48,11 @@ def plot_reconstruction_analysis(
     labels = np.concatenate([np.repeat('Nicht Fraud', len(not_fraud_error)), np.repeat('Fraud', len(fraud_error))])
 
     # Speichern des Plots in einem Google Drive-Ordner
+    save_path = None
     if save_path is None:
         # Basisverzeichnis für Google Drive
-        base_dir = "/content/drive/MyDrive"
-        folder_path = os.path.join(base_dir, folder_name)
+        base_dir = "Results"
+        folder_path = os.path.join(base_dir, experiment_name)
 
         # Erstelle den Ordner, falls er nicht existiert
         if not os.path.exists(folder_path):
@@ -58,7 +61,7 @@ def plot_reconstruction_analysis(
         # Generiere einen eindeutigen Dateinamen
         import datetime
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        save_path = os.path.join(folder_path, f"reconstruction_analysis_{timestamp}.png")
+        save_path = os.path.join(folder_path, f"reconstruction_analysis_{model.type}_{timestamp}.png")
 
     # Erstellen des Plots
     plt.figure(figsize=(12, 8))
