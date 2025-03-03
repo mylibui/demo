@@ -1,0 +1,30 @@
+{
+    "UnsupervisedAE": {
+        "latent_dim": 2,
+        "activation": "swish",
+        "learning_rate": 0.0036884550320333475,
+        "dropout_rate": 0.14438827330883364
+    },
+    "UnsupervisedVAE": {
+        "latent_dim": 2,
+        "activation": "swish",
+        "learning_rate": 0.00022252325857421317,
+        "dropout_rate": 0.07061057411978693,
+        "kl_weight": 1.2003344773811349
+    },
+    "SupervisedAE": {
+        "latent_dim": 8,
+        "activation": "relu",
+        "learning_rate": 0.0001221494559749793,
+        "dropout_rate": 0.0008899646616786994,
+        "l2_lambda": 0.056689827584544564
+    },
+    "SupervisedVAE": {
+        "latent_dim": 16,
+        "activation": "mish",
+        "learning_rate": 0.0008813065559754224,
+        "dropout_rate": 0.08378198832618539,
+        "l2_lambda": 0.001801236112019939,
+        "kl_weight": 0.7085683277820094
+    }
+}
