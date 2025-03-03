@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import layers, Model, metrics, regularizers
 from typing import List, Optional, Union, Tuple, Dict
 
+
 class SupervisedAE(Model):
     """
     Überwachter Autoencoder für Anomalieerkennung mit Klassifikation und L2-Regularisierung für den Klassifikationsverlust.
@@ -15,26 +16,27 @@ class SupervisedAE(Model):
         dropout_rate (float, optional): Dropout-Rate zwischen 0 und 1. Standardwert ist 0.0.
         l2_lambda (float, optional): L2-Regularisierungsfaktor für den Klassifikator (Standard: 0.01).
     """
+
     def __init__(
         self,
         input_dim: int,
         hidden_dims: List[int] = [64, 32],
         latent_dim: int = 32,
         classifier_dims: List[int] = [16, 8],
-        activation: str = 'relu',
+        activation: str = "relu",
         dropout_rate: float = 0.0,
-        l2_lambda: float = 0.01  # L2-Regularisierungsfaktor für den Klassifikator
+        l2_lambda: float = 0.01,  # L2-Regularisierungsfaktor für den Klassifikator
     ):
         super(SupervisedAE, self).__init__()
-        self.type = 'sae'
+        self.type = "sae"
 
         # Aktivierungsfunktion direkt definieren
-        if activation == 'mish':
+        if activation == "mish":
             self.activation = lambda x: x * tf.math.tanh(tf.math.softplus(x))
-        elif activation == 'swish':
+        elif activation == "swish":
             self.activation = lambda x: x * tf.nn.sigmoid(x)
-        elif activation == 'relu':
-            self.activation = 'relu'
+        elif activation == "relu":
+            self.activation = "relu"
         else:
             raise ValueError(f"Unbekannte Aktivierungsfunktion: {activation}")
 
@@ -43,40 +45,72 @@ class SupervisedAE(Model):
 
         # Encoder-Schichten mit optionalem Dropout
         self.encoder_layers = [
-            layers.Dense(dim, activation=self.activation if callable(self.activation) else self.activation, dtype=tf.float32)
+            layers.Dense(
+                dim,
+                activation=(
+                    self.activation if callable(self.activation) else self.activation
+                ),
+                dtype=tf.float32,
+            )
             for dim in hidden_dims
         ]
         if dropout_rate > 0:
             self.encoder_dropout = layers.Dropout(dropout_rate)
 
         # Latente Schicht im Encoder
-        self.latent_layer = layers.Dense(latent_dim, activation=None, dtype=tf.float32)  # Keine Aktivierung für latenten Raum
+        self.latent_layer = layers.Dense(
+            latent_dim, activation=None, dtype=tf.float32
+        )  # Keine Aktivierung für latenten Raum
 
         # Decoder-Schichten mit optionalem Dropout
         self.decoder_layers = [
-            layers.Dense(dim, activation=self.activation if callable(self.activation) else self.activation, dtype=tf.float32)
+            layers.Dense(
+                dim,
+                activation=(
+                    self.activation if callable(self.activation) else self.activation
+                ),
+                dtype=tf.float32,
+            )
             for dim in reversed(hidden_dims)
         ]
         if dropout_rate > 0:
             self.decoder_dropout = layers.Dropout(dropout_rate)
 
-        self.decoder_output = layers.Dense(input_dim, activation='linear', dtype=tf.float32)
+        self.decoder_output = layers.Dense(
+            input_dim, activation="linear", dtype=tf.float32
+        )
 
         # Klassifikator-Schichten mit L2-Regularisierung und optionalem Dropout
         self.classifier_layers = [
-            layers.Dense(dim, activation=self.activation, kernel_regularizer=regularizers.l2(l2_lambda), dtype=tf.float32)
+            layers.Dense(
+                dim,
+                activation=self.activation,
+                kernel_regularizer=regularizers.l2(l2_lambda),
+                dtype=tf.float32,
+            )
             for dim in classifier_dims
         ]
         if dropout_rate > 0:
             self.classifier_dropout = layers.Dropout(dropout_rate)
 
-        self.classifier_output = layers.Dense(1, activation='sigmoid', kernel_regularizer=regularizers.l2(l2_lambda), dtype=tf.float32)
+        self.classifier_output = layers.Dense(
+            1,
+            activation="sigmoid",
+            kernel_regularizer=regularizers.l2(l2_lambda),
+            dtype=tf.float32,
+        )
 
         # Metriken
-        self.reconstruction_loss_tracker = metrics.Mean(name="reconstruction_loss", dtype=tf.float32)
-        self.classification_loss_tracker = metrics.Mean(name="classification_loss", dtype=tf.float32)
+        self.reconstruction_loss_tracker = metrics.Mean(
+            name="reconstruction_loss", dtype=tf.float32
+        )
+        self.classification_loss_tracker = metrics.Mean(
+            name="classification_loss", dtype=tf.float32
+        )
         self.total_loss_tracker = metrics.Mean(name="total_loss", dtype=tf.float32)
-        self.regularization_loss_tracker = metrics.Mean(name="regularization_loss", dtype=tf.float32)  # Neue Metrik für Regularisierung
+        self.regularization_loss_tracker = metrics.Mean(
+            name="regularization_loss", dtype=tf.float32
+        )  # Neue Metrik für Regularisierung
 
     @property
     def metrics(self) -> List[metrics.Metric]:
@@ -85,7 +119,7 @@ class SupervisedAE(Model):
             self.reconstruction_loss_tracker,
             self.classification_loss_tracker,
             self.total_loss_tracker,
-            self.regularization_loss_tracker
+            self.regularization_loss_tracker,
         ]
 
     def encode(self, x: tf.Tensor) -> tf.Tensor:
@@ -121,7 +155,9 @@ class SupervisedAE(Model):
         x = z
         for layer in self.decoder_layers:
             x = layer(x)
-            if self.dropout_rate > 0 and layer != self.decoder_layers[-1]:  # Kein Dropout in der letzten Schicht
+            if (
+                self.dropout_rate > 0 and layer != self.decoder_layers[-1]
+            ):  # Kein Dropout in der letzten Schicht
                 x = self.decoder_dropout(x, training=True)
         return self.decoder_output(x)
 
@@ -144,7 +180,9 @@ class SupervisedAE(Model):
                 x = self.classifier_dropout(x, training=True)
         return self.classifier_output(x)
 
-    def call(self, inputs: tf.Tensor, training: bool = False) -> Tuple[tf.Tensor, tf.Tensor]:
+    def call(
+        self, inputs: tf.Tensor, training: bool = False
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
         """
         Vorwärtspass durch den SupervisedAE.
 
@@ -181,17 +219,31 @@ class SupervisedAE(Model):
 
         # Formatiere y zu Shape (batch_size, 1), um mit der Klassifikationsausgabe übereinzustimmen
         if len(y.shape) == 1:
-            y = tf.expand_dims(y, axis=-1)  # Füge eine Dimension hinzu: (batch_size,) -> (batch_size, 1)
+            y = tf.expand_dims(
+                y, axis=-1
+            )  # Füge eine Dimension hinzu: (batch_size,) -> (batch_size, 1)
 
         with tf.GradientTape() as tape:
             reconstructed, classification = self(x, training=True)
 
-            reconstruction_loss = tf.reduce_mean(tf.reduce_sum(tf.square(x - reconstructed), axis=-1))
+            reconstruction_loss = tf.reduce_mean(
+                tf.reduce_sum(tf.square(x - reconstructed), axis=-1)
+            )
             classification_loss = tf.keras.losses.binary_crossentropy(y, classification)
 
             # Berechne Regularisierungsloss für den Klassifikator
-            regularization_loss = tf.reduce_sum([tf.reduce_sum(tf.nn.l2_loss(w)) for w in self.trainable_weights if 'classifier' in w.name])
-            total_loss = reconstruction_loss + tf.reduce_mean(classification_loss) + (self.l2_lambda * regularization_loss)
+            regularization_loss = tf.reduce_sum(
+                [
+                    tf.reduce_sum(tf.nn.l2_loss(w))
+                    for w in self.trainable_weights
+                    if "classifier" in w.name
+                ]
+            )
+            total_loss = (
+                reconstruction_loss
+                + tf.reduce_mean(classification_loss)
+                + (self.l2_lambda * regularization_loss)
+            )
 
         grads = tape.gradient(total_loss, self.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
@@ -205,7 +257,7 @@ class SupervisedAE(Model):
             "reconstruction_loss": self.reconstruction_loss_tracker.result(),
             "classification_loss": self.classification_loss_tracker.result(),
             "total_loss": self.total_loss_tracker.result(),
-            "regularization_loss": self.regularization_loss_tracker.result()
+            "regularization_loss": self.regularization_loss_tracker.result(),
         }
 
     def test_step(self, data: Tuple[tf.Tensor, tf.Tensor]) -> Dict[str, tf.Tensor]:
@@ -227,16 +279,30 @@ class SupervisedAE(Model):
 
         # Formatiere y zu Shape (batch_size, 1), um mit der Klassifikationsausgabe übereinzustimmen
         if len(y.shape) == 1:
-            y = tf.expand_dims(y, axis=-1)  # Füge eine Dimension hinzu: (batch_size,) -> (batch_size, 1)
+            y = tf.expand_dims(
+                y, axis=-1
+            )  # Füge eine Dimension hinzu: (batch_size,) -> (batch_size, 1)
 
         reconstructed, classification = self(x, training=False)
 
-        reconstruction_loss = tf.reduce_mean(tf.reduce_sum(tf.square(x - reconstructed), axis=-1))
+        reconstruction_loss = tf.reduce_mean(
+            tf.reduce_sum(tf.square(x - reconstructed), axis=-1)
+        )
         classification_loss = tf.keras.losses.binary_crossentropy(y, classification)
 
         # Berechne Regularisierungsloss für den Klassifikator
-        regularization_loss = tf.reduce_sum([tf.reduce_sum(tf.nn.l2_loss(w)) for w in self.trainable_weights if 'classifier' in w.name])
-        total_loss = reconstruction_loss + tf.reduce_mean(classification_loss) + (self.l2_lambda * regularization_loss)
+        regularization_loss = tf.reduce_sum(
+            [
+                tf.reduce_sum(tf.nn.l2_loss(w))
+                for w in self.trainable_weights
+                if "classifier" in w.name
+            ]
+        )
+        total_loss = (
+            reconstruction_loss
+            + tf.reduce_mean(classification_loss)
+            + (self.l2_lambda * regularization_loss)
+        )
 
         self.reconstruction_loss_tracker.update_state(reconstruction_loss)
         self.classification_loss_tracker.update_state(classification_loss)
@@ -247,7 +313,7 @@ class SupervisedAE(Model):
             "reconstruction_loss": self.reconstruction_loss_tracker.result(),
             "classification_loss": self.classification_loss_tracker.result(),
             "total_loss": self.total_loss_tracker.result(),
-            "regularization_loss": self.regularization_loss_tracker.result()
+            "regularization_loss": self.regularization_loss_tracker.result(),
         }
 
     def print_summary(self):
@@ -275,4 +341,6 @@ class SupervisedAE(Model):
 
         # Erstelle ein Dummy-Input-Tensor, um das Modell zu bauen
         dummy_input = tf.zeros((1, input_dim), dtype=tf.float32)
-        self.call(dummy_input, training=False)  # Baut das Modell, indem es auf Dummy-Daten angewendet wird
+        self.call(
+            dummy_input, training=False
+        )  # Baut das Modell, indem es auf Dummy-Daten angewendet wird

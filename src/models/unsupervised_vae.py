@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import layers, Model, metrics
 from typing import List, Optional, Union, Tuple, Dict
 
+
 class UnsupervisedVAE(Model):
     """
     Unüberwachter Variational Autoencoder für Anomalieerkennung.
@@ -14,25 +15,26 @@ class UnsupervisedVAE(Model):
         dropout_rate (float, optional): Dropout-Rate zwischen 0 und 1. Standardwert ist 0.0.
         kl_weight (float, optional): Gewichtungsfaktor für den KL-Verlust. Standardwert ist 1.0.
     """
+
     def __init__(
         self,
         input_dim: int,
         latent_dim: int = 16,
         hidden_dims: List[int] = [64, 32],
-        activation: str = 'relu',
+        activation: str = "relu",
         dropout_rate: float = 0.0,
-        kl_weight: float = 1.0
+        kl_weight: float = 1.0,
     ):
         super(UnsupervisedVAE, self).__init__()
-        self.type = 'svae'
+        self.type = "svae"
 
         # Aktivierungsfunktion direkt definieren
-        if activation == 'mish':
+        if activation == "mish":
             self.activation = lambda x: x * tf.math.tanh(tf.math.softplus(x))
-        elif activation == 'swish':
+        elif activation == "swish":
             self.activation = lambda x: x * tf.nn.sigmoid(x)
-        elif activation == 'relu':
-            self.activation = 'relu'
+        elif activation == "relu":
+            self.activation = "relu"
         else:
             raise ValueError(f"Unbekannte Aktivierungsfunktion: {activation}")
 
@@ -42,7 +44,12 @@ class UnsupervisedVAE(Model):
 
         # Encoder-Schichten mit optionalem Dropout
         self.encoder_layers = [
-            layers.Dense(dim, activation=self.activation if callable(self.activation) else self.activation)
+            layers.Dense(
+                dim,
+                activation=(
+                    self.activation if callable(self.activation) else self.activation
+                ),
+            )
             for dim in hidden_dims
         ]
         if dropout_rate > 0:
@@ -63,13 +70,18 @@ class UnsupervisedVAE(Model):
 
         # Decoder-Schichten mit optionalem Dropout
         self.decoder_layers = [
-            layers.Dense(dim, activation=self.activation if callable(self.activation) else self.activation)
+            layers.Dense(
+                dim,
+                activation=(
+                    self.activation if callable(self.activation) else self.activation
+                ),
+            )
             for dim in reversed(hidden_dims)
         ]
         if dropout_rate > 0:
             self.decoder_dropout = layers.Dropout(dropout_rate)
 
-        self.decoder_output = layers.Dense(input_dim, activation='linear')
+        self.decoder_output = layers.Dense(input_dim, activation="linear")
 
         # Metriken
         self.total_loss_tracker = metrics.Mean(name="total_loss")
@@ -117,11 +129,15 @@ class UnsupervisedVAE(Model):
         x = z
         for layer in self.decoder_layers:
             x = layer(x)
-            if self.dropout_rate > 0 and layer != self.decoder_layers[-1]:  # Kein Dropout in der letzten Schicht
+            if (
+                self.dropout_rate > 0 and layer != self.decoder_layers[-1]
+            ):  # Kein Dropout in der letzten Schicht
                 x = self.decoder_dropout(x, training=True)
         return self.decoder_output(x)
 
-    def call(self, inputs: tf.Tensor, training: bool = False) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    def call(
+        self, inputs: tf.Tensor, training: bool = False
+    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         """
         Vorwärtspass durch den VAE.
 
@@ -136,7 +152,9 @@ class UnsupervisedVAE(Model):
         reconstructed = self.decode(z)
         return reconstructed, z_mean, z_log_var
 
-    def train_step(self, data: Union[tf.Tensor, Tuple[tf.Tensor, tf.Tensor]]) -> Dict[str, float]:
+    def train_step(
+        self, data: Union[tf.Tensor, Tuple[tf.Tensor, tf.Tensor]]
+    ) -> Dict[str, float]:
         """
         Trainings-Schritt für den VAE mit MSE- und KL-Verlust.
 
@@ -158,8 +176,14 @@ class UnsupervisedVAE(Model):
             z_mean, z_log_var, z = self.encode(x)
             reconstruction = self.decode(z)
 
-            reconstruction_loss = tf.reduce_mean(tf.reduce_sum(tf.square(x - reconstruction), axis=-1))
-            kl_loss = -0.5 * tf.reduce_mean(tf.reduce_sum(1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var), axis=-1))
+            reconstruction_loss = tf.reduce_mean(
+                tf.reduce_sum(tf.square(x - reconstruction), axis=-1)
+            )
+            kl_loss = -0.5 * tf.reduce_mean(
+                tf.reduce_sum(
+                    1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var), axis=-1
+                )
+            )
             total_loss = reconstruction_loss + self.kl_weight * kl_loss
 
         grads = tape.gradient(total_loss, self.trainable_weights)
@@ -175,7 +199,9 @@ class UnsupervisedVAE(Model):
             "kl_loss": self.kl_loss_tracker.result(),
         }
 
-    def test_step(self, data: Union[tf.Tensor, Tuple[tf.Tensor, tf.Tensor]]) -> Dict[str, float]:
+    def test_step(
+        self, data: Union[tf.Tensor, Tuple[tf.Tensor, tf.Tensor]]
+    ) -> Dict[str, float]:
         """
         Test-Schritt für den VAE mit MSE- und KL-Verlust.
 
@@ -196,8 +222,14 @@ class UnsupervisedVAE(Model):
         z_mean, z_log_var, z = self.encode(x)
         reconstruction = self.decode(z)
 
-        reconstruction_loss = tf.reduce_mean(tf.reduce_sum(tf.square(x - reconstruction), axis=-1))
-        kl_loss = -0.5 * tf.reduce_mean(tf.reduce_sum(1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var), axis=-1))
+        reconstruction_loss = tf.reduce_mean(
+            tf.reduce_sum(tf.square(x - reconstruction), axis=-1)
+        )
+        kl_loss = -0.5 * tf.reduce_mean(
+            tf.reduce_sum(
+                1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var), axis=-1
+            )
+        )
         total_loss = reconstruction_loss + self.kl_weight * kl_loss
 
         self.total_loss_tracker.update_state(total_loss)
@@ -235,4 +267,6 @@ class UnsupervisedVAE(Model):
 
         # Erstelle ein Dummy-Input-Tensor, um das Modell zu bauen
         dummy_input = tf.zeros((1, input_dim), dtype=tf.float32)
-        self.call(dummy_input, training=False)  # Baut das Modell, indem es auf Dummy-Daten angewendet wird
+        self.call(
+            dummy_input, training=False
+        )  # Baut das Modell, indem es auf Dummy-Daten angewendet wird

@@ -2,19 +2,23 @@ import tensorflow as tf
 import numpy as np
 import os
 import datetime
-from sklearn.metrics import classification_report, precision_score, recall_score, f1_score, accuracy_score, roc_auc_score
-from typing import Union, Optional,Dict
+from sklearn.metrics import (
+    classification_report,
+    precision_score,
+    recall_score,
+    f1_score,
+    accuracy_score,
+    roc_auc_score,
+)
+from typing import Union, Optional, Dict
 
 from ..models import UnsupervisedAE, UnsupervisedVAE, SupervisedAE, SupervisedVAE
 from .detect_fraud import detect_fraud
 from .threshhold import find_optimal_threshold
 
+
 def evaluate_fraud_detection(
-    model: Union['UnsupervisedAE'
-                 ,'UnsupervisedVAE'
-                 , 'SupervisedAE'
-                 , 'SupervisedVAE'
-                 ],
+    model: Union["UnsupervisedAE", "UnsupervisedVAE", "SupervisedAE", "SupervisedVAE"],
     X: np.ndarray,
     y: np.ndarray,
     experiment_name: str,
@@ -39,7 +43,7 @@ def evaluate_fraud_detection(
         ValueError: Wenn das Modell einen unbekannten Typ hat, X oder y ungültig sind.
         TypeError: Wenn X oder y kein NumPy-Array oder Tensor ist.
     """
-        # Bestimme optimalen Schwellenwert, falls keiner angegeben ist
+    # Bestimme optimalen Schwellenwert, falls keiner angegeben ist
     if threshold is None:
         threshold, _ = find_optimal_threshold(model, X, y)
         print(f"Optimaler Schwellenwert basierend auf F1-Score: {threshold}")
@@ -54,11 +58,17 @@ def evaluate_fraud_detection(
     accuracy = accuracy_score(y, fraud_predictions)
 
     # Berechne ROC-AUC (benötigt Wahrscheinlichkeiten, daher verwenden wir Rekonstruktionsfehler als Score)
-    roc_auc = roc_auc_score(y,fraud_predictions)  # Negieren, da niedrigere Rekonstruktionsfehler normal sind
+    roc_auc = roc_auc_score(
+        y, fraud_predictions
+    )  # Negieren, da niedrigere Rekonstruktionsfehler normal sind
 
     # Erstelle Klassifikationsbericht
     print("\nKlassifikationsbericht:")
-    print(classification_report(y, fraud_predictions, target_names=['Nicht Fraud', 'Fraud']))
+    print(
+        classification_report(
+            y, fraud_predictions, target_names=["Nicht Fraud", "Fraud"]
+        )
+    )
 
     # Gib Metriken aus
     metrics_dict = {
@@ -66,7 +76,7 @@ def evaluate_fraud_detection(
         "Recall": recall,
         "F1-Score": f1,
         "Accuracy": accuracy,
-        "ROC-AUC": roc_auc
+        "ROC-AUC": roc_auc,
     }
     print("\nMetriken:")
     for metric, value in metrics_dict.items():
@@ -84,11 +94,17 @@ def evaluate_fraud_detection(
 
         # Generiere einen eindeutigen Dateinamen
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        metrics_path = os.path.join(folder_path, f"metrics_{model.type}_{timestamp}.txt")
+        metrics_path = os.path.join(
+            folder_path, f"metrics_{model.type}_{timestamp}.txt"
+        )
 
-        with open(metrics_path, 'w') as f:
+        with open(metrics_path, "w") as f:
             f.write("Klassifikationsbericht:\n")
-            f.write(classification_report(y, fraud_predictions, target_names=['Nicht Fraud', 'Fraud']))
+            f.write(
+                classification_report(
+                    y, fraud_predictions, target_names=["Nicht Fraud", "Fraud"]
+                )
+            )
             f.write("\nMetriken:\n")
             for metric, value in metrics_dict.items():
                 f.write(f"{metric}: {value:.4f}\n")

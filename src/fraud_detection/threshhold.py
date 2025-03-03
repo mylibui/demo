@@ -3,17 +3,20 @@ import numpy as np
 from sklearn.metrics import f1_score
 from typing import Union, Optional, Tuple
 
-from ..models import calculate_reconstruction_error, UnsupervisedVAE, UnsupervisedAE, SupervisedAE, SupervisedVAE
+from ..models import (
+    calculate_reconstruction_error,
+    UnsupervisedVAE,
+    UnsupervisedAE,
+    SupervisedAE,
+    SupervisedVAE,
+)
+
 
 def find_optimal_threshold(
-    model: Union['UnsupervisedAE'
-                 , 'UnsupervisedVAE'
-                 , 'SupervisedAE'
-                 , 'SupervisedVAE'
-                 ],
+    model: Union["UnsupervisedAE", "UnsupervisedVAE", "SupervisedAE", "SupervisedVAE"],
     X: np.ndarray,
     y: np.ndarray,
-    thresholds: Optional[np.ndarray] = None
+    thresholds: Optional[np.ndarray] = None,
 ) -> Tuple[float, float]:
     """
     Bestimmt den optimalen Schwellenwert für die Anomaliedetektion basierend auf dem F1-Score.

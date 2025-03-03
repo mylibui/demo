@@ -1,17 +1,20 @@
 from typing import Union, Optional
 import numpy as np
 
-from ..models import calculate_reconstruction_error, UnsupervisedVAE, UnsupervisedAE, SupervisedAE, SupervisedVAE
+from ..models import (
+    calculate_reconstruction_error,
+    UnsupervisedVAE,
+    UnsupervisedAE,
+    SupervisedAE,
+    SupervisedVAE,
+)
 from .threshhold import find_optimal_threshold
 
+
 def detect_fraud(
-    model: Union['UnsupervisedAE'
-                 , 'UnsupervisedVAE'
-                 , 'SupervisedAE'
-                 ,'SupervisedVAE'
-                 ],
+    model: Union["UnsupervisedAE", "UnsupervisedVAE", "SupervisedAE", "SupervisedVAE"],
     X: np.ndarray,
-    threshold: Optional[float] = None
+    threshold: Optional[float] = None,
 ) -> np.ndarray:
     """
     Detektiert Fraud-Transaktionen basierend auf dem Rekonstruktionsfehler und einem Schwellenwert.
@@ -37,7 +40,9 @@ def detect_fraud(
         # Hier simulieren wir, dass wir Labels haben (z. B. aus Testdaten)
         # In der Praxis müssen Sie y_test bereitstellen
         # Für dieses Beispiel nehmen wir an, dass wir keine Labels haben und einen Standard-Schwellenwert verwenden
-        threshold, _ = find_optimal_threshold(model, X, np.zeros(len(X)))  # Dummy-Labels für Demo
+        threshold, _ = find_optimal_threshold(
+            model, X, np.zeros(len(X))
+        )  # Dummy-Labels für Demo
         print(f"Optimaler Schwellenwert (ohne echte Labels): {threshold}")
 
     # Detektiere Fraud basierend auf Schwellenwert

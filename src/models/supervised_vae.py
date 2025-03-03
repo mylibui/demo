@@ -1,6 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras import layers, Model, metrics
 from typing import List, Optional, Union, Tuple, Dict
+
+
 class SupervisedVAE(Model):
     """
     Überwachter Variational Autoencoder für Anomalieerkennung mit Klassifikation.
@@ -14,26 +16,27 @@ class SupervisedVAE(Model):
         dropout_rate (float, optional): Dropout-Rate zwischen 0 und 1. Standardwert ist 0.0.
         kl_weight (float, optional): Gewichtungsfaktor für den KL-Verlust. Standardwert ist 1.0.
     """
+
     def __init__(
         self,
         input_dim: int,
         hidden_dims: List[int] = [64, 32],
         latent_dim: int = 16,
-        classifier_dims: List[int] = [16,8],
-        activation: str = 'relu',
+        classifier_dims: List[int] = [16, 8],
+        activation: str = "relu",
         dropout_rate: float = 0.0,
-        kl_weight: float = 1.0
+        kl_weight: float = 1.0,
     ):
         super(SupervisedVAE, self).__init__()
-        self.type = 'svae'
+        self.type = "svae"
 
         # Aktivierungsfunktion direkt definieren
-        if activation == 'mish':
+        if activation == "mish":
             self.activation = lambda x: x * tf.math.tanh(tf.math.softplus(x))
-        elif activation == 'swish':
+        elif activation == "swish":
             self.activation = lambda x: x * tf.nn.sigmoid(x)
-        elif activation == 'relu':
-            self.activation = 'relu'
+        elif activation == "relu":
+            self.activation = "relu"
         else:
             raise ValueError(f"Unbekannte Aktivierungsfunktion: {activation}")
 
@@ -43,7 +46,13 @@ class SupervisedVAE(Model):
 
         # Encoder-Schichten mit optionalem Dropout
         self.encoder_layers = [
-            layers.Dense(dim, activation=self.activation if callable(self.activation) else self.activation, dtype=tf.float32)
+            layers.Dense(
+                dim,
+                activation=(
+                    self.activation if callable(self.activation) else self.activation
+                ),
+                dtype=tf.float32,
+            )
             for dim in hidden_dims
         ]
         if dropout_rate > 0:
@@ -64,27 +73,39 @@ class SupervisedVAE(Model):
 
         # Decoder-Schichten mit optionalem Dropout
         self.decoder_layers = [
-            layers.Dense(dim, activation=self.activation if callable(self.activation) else self.activation, dtype=tf.float32)
+            layers.Dense(
+                dim,
+                activation=(
+                    self.activation if callable(self.activation) else self.activation
+                ),
+                dtype=tf.float32,
+            )
             for dim in reversed(hidden_dims)
         ]
         if dropout_rate > 0:
             self.decoder_dropout = layers.Dropout(dropout_rate)
 
-        self.decoder_output = layers.Dense(input_dim, activation='linear', dtype=tf.float32)
+        self.decoder_output = layers.Dense(
+            input_dim, activation="linear", dtype=tf.float32
+        )
 
         # Klassifikator-Schichten mit optionalem Dropout
-        #self.classifier_layers = [
+        # self.classifier_layers = [
         #    layers.Dense(dim, activation=self.activation if callable(self.activation) else self.activation, dtype=tf.float32)
         #    for dim in classifier_dims
-        #]
-        #if dropout_rate > 0:
+        # ]
+        # if dropout_rate > 0:
         #    self.classifier_dropout = layers.Dropout(dropout_rate)
 
-        self.classifier_output = layers.Dense(1, activation='sigmoid', dtype=tf.float32)
+        self.classifier_output = layers.Dense(1, activation="sigmoid", dtype=tf.float32)
 
         # Metriken
-        self.reconstruction_loss_tracker = metrics.Mean(name="reconstruction_loss", dtype=tf.float32)
-        self.classification_loss_tracker = metrics.Mean(name="classification_loss", dtype=tf.float32)
+        self.reconstruction_loss_tracker = metrics.Mean(
+            name="reconstruction_loss", dtype=tf.float32
+        )
+        self.classification_loss_tracker = metrics.Mean(
+            name="classification_loss", dtype=tf.float32
+        )
         self.kl_loss_tracker = metrics.Mean(name="kl_loss", dtype=tf.float32)
         self.total_loss_tracker = metrics.Mean(name="total_loss", dtype=tf.float32)
 
@@ -134,7 +155,9 @@ class SupervisedVAE(Model):
         x = z
         for layer in self.decoder_layers:
             x = layer(x)
-            if self.dropout_rate > 0 and layer != self.decoder_layers[-1]:  # Kein Dropout in der letzten Schicht
+            if (
+                self.dropout_rate > 0 and layer != self.decoder_layers[-1]
+            ):  # Kein Dropout in der letzten Schicht
                 x = self.decoder_dropout(x, training=True)
         return self.decoder_output(x)
 
@@ -151,11 +174,13 @@ class SupervisedVAE(Model):
         if z.dtype != tf.float32:
             z = tf.cast(z, tf.float32)  # Konvertiere explizit zu float32
         x = z
-        #if self.dropout_rate > 0:
-         #       x = self.classifier_dropout(x, training=True)
+        # if self.dropout_rate > 0:
+        #       x = self.classifier_dropout(x, training=True)
         return self.classifier_output(x)
 
-    def call(self, inputs: tf.Tensor, training: bool = False) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    def call(
+        self, inputs: tf.Tensor, training: bool = False
+    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
         """
         Vorwärtspass durch den SupervisedVAE.
 
@@ -187,19 +212,31 @@ class SupervisedVAE(Model):
             y = tf.expand_dims(y, axis=-1)
 
         with tf.GradientTape() as tape:
-            reconstructed, z_mean, z_log_var, classification = self.call(x, training=True)
+            reconstructed, z_mean, z_log_var, classification = self.call(
+                x, training=True
+            )
 
             # Rekonstruktionsverlust (MSE)
-            reconstruction_loss = tf.reduce_mean(tf.reduce_sum(tf.square(x - reconstructed), axis=-1))
+            reconstruction_loss = tf.reduce_mean(
+                tf.reduce_sum(tf.square(x - reconstructed), axis=-1)
+            )
 
             # Klassifikationsverlust (Binary Crossentropy)
             classification_loss = tf.keras.losses.binary_crossentropy(y, classification)
 
             # KL-Verlust
-            kl_loss = -0.5 * tf.reduce_mean(tf.reduce_sum(1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var), axis=-1))
+            kl_loss = -0.5 * tf.reduce_mean(
+                tf.reduce_sum(
+                    1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var), axis=-1
+                )
+            )
 
             # Gesamtverlust
-            total_loss = reconstruction_loss + tf.reduce_mean(classification_loss) + self.kl_weight * kl_loss
+            total_loss = (
+                reconstruction_loss
+                + tf.reduce_mean(classification_loss)
+                + self.kl_weight * kl_loss
+            )
 
         grads = tape.gradient(total_loss, self.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
@@ -208,7 +245,9 @@ class SupervisedVAE(Model):
         self.reconstruction_loss_tracker.update_state(reconstruction_loss)
         self.classification_loss_tracker.update_state(classification_loss)
         self.kl_loss_tracker.update_state(kl_loss)
-        self.total_loss_tracker.update_state(total_loss)  # Speichere 'loss' als total_loss
+        self.total_loss_tracker.update_state(
+            total_loss
+        )  # Speichere 'loss' als total_loss
 
         return {
             "loss": self.total_loss_tracker.result(),
@@ -236,26 +275,40 @@ class SupervisedVAE(Model):
 
         # Formatiere y zu Shape (batch_size, 1), um mit der Klassifikationsausgabe übereinzustimmen
         if len(y.shape) == 1:
-            y = tf.expand_dims(y, axis=-1)  # Füge eine Dimension hinzu: (batch_size,) -> (batch_size, 1)
+            y = tf.expand_dims(
+                y, axis=-1
+            )  # Füge eine Dimension hinzu: (batch_size,) -> (batch_size, 1)
 
         reconstructed, z_mean, z_log_var, classification = self.call(x, training=False)
 
         # Rekonstruktionsverlust (MSE)
-        reconstruction_loss = tf.reduce_mean(tf.reduce_sum(tf.square(x - reconstructed), axis=-1))
+        reconstruction_loss = tf.reduce_mean(
+            tf.reduce_sum(tf.square(x - reconstructed), axis=-1)
+        )
 
         # Klassifikationsverlust (Binary Crossentropy)
         classification_loss = tf.keras.losses.binary_crossentropy(y, classification)
 
         # KL-Verlust
-        kl_loss = -0.5 * tf.reduce_mean(tf.reduce_sum(1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var), axis=-1))
+        kl_loss = -0.5 * tf.reduce_mean(
+            tf.reduce_sum(
+                1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var), axis=-1
+            )
+        )
 
         # Gesamtverlust
-        total_loss = reconstruction_loss + tf.reduce_mean(classification_loss) + self.kl_weight * kl_loss
+        total_loss = (
+            reconstruction_loss
+            + tf.reduce_mean(classification_loss)
+            + self.kl_weight * kl_loss
+        )
 
         self.reconstruction_loss_tracker.update_state(reconstruction_loss)
         self.classification_loss_tracker.update_state(classification_loss)
         self.kl_loss_tracker.update_state(kl_loss)
-        self.total_loss_tracker.update_state(total_loss)  # Speichere 'loss' als total_loss
+        self.total_loss_tracker.update_state(
+            total_loss
+        )  # Speichere 'loss' als total_loss
 
         return {
             "loss": self.total_loss_tracker.result(),
@@ -289,4 +342,6 @@ class SupervisedVAE(Model):
 
         # Erstelle ein Dummy-Input-Tensor, um das Modell zu bauen
         dummy_input = tf.zeros((1, input_dim), dtype=tf.float32)
-        self.call(dummy_input, training=False)  # Baut das Modell, indem es auf Dummy-Daten angewendet wird
+        self.call(
+            dummy_input, training=False
+        )  # Baut das Modell, indem es auf Dummy-Daten angewendet wird

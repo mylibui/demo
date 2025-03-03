@@ -7,11 +7,9 @@ import matplotlib.pyplot as plt
 
 from ..models import UnsupervisedAE, UnsupervisedVAE, SupervisedAE, SupervisedVAE
 
+
 def plot_latent_space(
-    model: Union['UnsupervisedAE'
-                 , 'UnsupervisedVAE', 'SupervisedAE'
-                 , 'SupervisedVAE'
-                 ],
+    model: Union["UnsupervisedAE", "UnsupervisedVAE", "SupervisedAE", "SupervisedVAE"],
     X: np.ndarray,
     y: np.ndarray,
     experiment_name: str,
@@ -38,7 +36,7 @@ def plot_latent_space(
     # The original line was trying to call .numpy() on a tuple, which is not possible.
     # Assuming your encode method returns a tuple where the first element is the latent representation,
     # we need to access that element.
-# Extrahiere den latenten Raum basierend auf dem Modelltyp
+    # Extrahiere den latenten Raum basierend auf dem Modelltyp
     if isinstance(model, UnsupervisedAE):
         latent_representation = model.encode(x).numpy()  # Direkte latente Darstellung
     elif isinstance(model, UnsupervisedVAE):
@@ -50,7 +48,9 @@ def plot_latent_space(
         z_mean, _, _ = model.encode(x)  # Nimm z_mean als latente Darstellung
         latent_representation = z_mean.numpy()
     else:
-        raise ValueError("Unbekannter Modelltyp – sollte nicht auftreten aufgrund vorheriger Validierung")
+        raise ValueError(
+            "Unbekannter Modelltyp – sollte nicht auftreten aufgrund vorheriger Validierung"
+        )
 
     # Reduziere die Dimensionen auf 2, falls latent_dim > 2
     if latent_representation.shape[1] > 2:
@@ -70,22 +70,25 @@ def plot_latent_space(
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-     # Generiere einen eindeutigen Dateinamen basierend auf dem Modelltyp
+        # Generiere einen eindeutigen Dateinamen basierend auf dem Modelltyp
         model_name: str = model.type
         import datetime
+
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        save_path = os.path.join(folder_path, f"latent_space_{model_name}_{timestamp}.png")
+        save_path = os.path.join(
+            folder_path, f"latent_space_{model_name}_{timestamp}.png"
+        )
 
     # Erstellen des Plots
     plt.figure(figsize=(10, 6))
-    scatter = plt.scatter(latent_2d[:, 0], latent_2d[:, 1], c=y, cmap='bwr', alpha=0.5)
-    plt.colorbar(scatter, label='Klasse (0 = Nicht Fraud, 1 = Fraud)')
+    scatter = plt.scatter(latent_2d[:, 0], latent_2d[:, 1], c=y, cmap="bwr", alpha=0.5)
+    plt.colorbar(scatter, label="Klasse (0 = Nicht Fraud, 1 = Fraud)")
     plt.title(f"Latenter Raum des {model_name.upper()}-Modells")
     plt.xlabel("Latente Dimension 1")
     plt.ylabel("Latente Dimension 2")
 
     # Speichern des Plots
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    #plt.close()  # Speicherfreigabe in Google Colab
+    plt.savefig(save_path, dpi=300, bbox_inches="tight")
+    # plt.close()  # Speicherfreigabe in Google Colab
 
     print(f"Latenter Raum wurde gespeichert unter: {save_path}")

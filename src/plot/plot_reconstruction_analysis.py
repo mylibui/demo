@@ -4,15 +4,18 @@ from typing import Union, Optional
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from ..models import UnsupervisedAE, UnsupervisedVAE, SupervisedAE, SupervisedVAE, calculate_reconstruction_error
+from ..models import (
+    UnsupervisedAE,
+    UnsupervisedVAE,
+    SupervisedAE,
+    SupervisedVAE,
+    calculate_reconstruction_error,
+)
 from ..fraud_detection import find_optimal_threshold
 
 
 def plot_reconstruction_analysis(
-    model: Union['UnsupervisedAE'
-                 , 'UnsupervisedVAE', 'SupervisedAE'
-                 , 'SupervisedVAE'
-                 ],
+    model: Union["UnsupervisedAE", "UnsupervisedVAE", "SupervisedAE", "SupervisedVAE"],
     X: np.ndarray,
     y: np.ndarray,
     experiment_name: str,
@@ -45,7 +48,12 @@ def plot_reconstruction_analysis(
 
     # Kombinierte Daten für Boxplot und Histogramm
     data = np.concatenate([not_fraud_error, fraud_error])
-    labels = np.concatenate([np.repeat('Nicht Fraud', len(not_fraud_error)), np.repeat('Fraud', len(fraud_error))])
+    labels = np.concatenate(
+        [
+            np.repeat("Nicht Fraud", len(not_fraud_error)),
+            np.repeat("Fraud", len(fraud_error)),
+        ]
+    )
 
     # Speichern des Plots in einem Google Drive-Ordner
     save_path = None
@@ -60,27 +68,49 @@ def plot_reconstruction_analysis(
 
         # Generiere einen eindeutigen Dateinamen
         import datetime
+
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        save_path = os.path.join(folder_path, f"reconstruction_analysis_{model.type}_{timestamp}.png")
+        save_path = os.path.join(
+            folder_path, f"reconstruction_analysis_{model.type}_{timestamp}.png"
+        )
 
     # Erstellen des Plots
     plt.figure(figsize=(12, 8))
 
     # Boxplot (oben)
     plt.subplot(2, 1, 1)
-    sns.boxplot(x=labels, y=data, palette={'Nicht Fraud': 'blue', 'Fraud': 'red'})
+    sns.boxplot(x=labels, y=data, palette={"Nicht Fraud": "blue", "Fraud": "red"})
     plt.title("Boxplot des Rekonstruktionsfehlers: Fraud vs. Nicht Fraud")
     plt.xlabel("")
     plt.ylabel("Rekonstruktionsfehler (MSE)")
-    plt.axhline(y=threshold, color='black', linestyle='--', label=f'Optimaler Schwellenwert = {threshold:.4f}')
+    plt.axhline(
+        y=threshold,
+        color="black",
+        linestyle="--",
+        label=f"Optimaler Schwellenwert = {threshold:.4f}",
+    )
     plt.legend()
 
     # Histogramm mit Dichte (unten)
     plt.subplot(2, 1, 2)
-    sns.histplot(data=not_fraud_error, bins=50, color='blue', label='Nicht Fraud', alpha=0.5, stat='density')
-    sns.histplot(data=fraud_error, bins=50, color='red', label='Fraud', alpha=0.5, stat='density')
+    sns.histplot(
+        data=not_fraud_error,
+        bins=50,
+        color="blue",
+        label="Nicht Fraud",
+        alpha=0.5,
+        stat="density",
+    )
+    sns.histplot(
+        data=fraud_error, bins=50, color="red", label="Fraud", alpha=0.5, stat="density"
+    )
 
-    plt.axvline(x=threshold, color='black', linestyle='--', label=f'Optimaler Schwellenwert = {threshold:.4f}')
+    plt.axvline(
+        x=threshold,
+        color="black",
+        linestyle="--",
+        label=f"Optimaler Schwellenwert = {threshold:.4f}",
+    )
     plt.title("Verteilung des Rekonstruktionsfehlers (Dichte): Fraud vs. Nicht Fraud")
     plt.xlabel("Rekonstruktionsfehler (MSE)")
     plt.ylabel("Dichte")
@@ -89,7 +119,7 @@ def plot_reconstruction_analysis(
     plt.tight_layout()
 
     # Speichern des Plots
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    #plt.close()  # Speicherfreigabe in Google Colab
+    plt.savefig(save_path, dpi=300, bbox_inches="tight")
+    # plt.close()  # Speicherfreigabe in Google Colab
 
     print(f"Analyse wurde gespeichert unter: {save_path}")

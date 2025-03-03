@@ -4,14 +4,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import auc, roc_curve
 
-from ..models import UnsupervisedAE, UnsupervisedVAE, SupervisedAE, SupervisedVAE, calculate_reconstruction_error
+from ..models import (
+    UnsupervisedAE,
+    UnsupervisedVAE,
+    SupervisedAE,
+    SupervisedVAE,
+    calculate_reconstruction_error,
+)
 from ..fraud_detection import find_optimal_threshold
 
+
 def plot_roc_auc_curve(
-    model: Union['UnsupervisedAE'
-                 , 'UnsupervisedVAE', 'SupervisedAE'
-                 , 'SupervisedVAE'
-                 ],
+    model: Union["UnsupervisedAE", "UnsupervisedVAE", "SupervisedAE", "SupervisedVAE"],
     X: np.ndarray,
     y: np.ndarray,
     experiment_name: str,
@@ -42,7 +46,9 @@ def plot_roc_auc_curve(
     # Extrahiere den Modellnamen
     model_name = model.__class__.__name__  # z. B. "UnsupervisedAE"
     # Berechne ROC-Kurve und AUC
-    fpr, tpr, thresholds_roc = roc_curve(y,reconstruction_error)  # Negieren, da niedrigere Rekonstruktionsfehler normal sind
+    fpr, tpr, thresholds_roc = roc_curve(
+        y, reconstruction_error
+    )  # Negieren, da niedrigere Rekonstruktionsfehler normal sind
     roc_auc = auc(fpr, tpr)
 
     # Speichern des Plots in einem Google Drive-Ordner
@@ -58,24 +64,33 @@ def plot_roc_auc_curve(
 
         # Generiere einen eindeutigen Dateinamen
         import datetime
+
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         save_path = os.path.join(folder_path, f"{model_name}roc_curve_{timestamp}.png")
 
     # Erstellen des Plots
     plt.figure(figsize=(8, 6))
-    plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'{model_name} ROC curve (AUC = {roc_auc:.4f})')
-    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--', label='Zufallsprognose')
+    plt.plot(
+        fpr,
+        tpr,
+        color="darkorange",
+        lw=2,
+        label=f"{model_name} ROC curve (AUC = {roc_auc:.4f})",
+    )
+    plt.plot(
+        [0, 1], [0, 1], color="navy", lw=2, linestyle="--", label="Zufallsprognose"
+    )
 
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate (FPR)')
-    plt.ylabel('True Positive Rate (TPR)')
-    plt.title('ROC-Kurve für Fraud-Detektion')
+    plt.xlabel("False Positive Rate (FPR)")
+    plt.ylabel("True Positive Rate (TPR)")
+    plt.title("ROC-Kurve für Fraud-Detektion")
     plt.legend(loc="lower right")
 
     # Speichern des Plots
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    #plt.close()  # Speicherfreigabe in Google Colab
+    plt.savefig(save_path, dpi=300, bbox_inches="tight")
+    # plt.close()  # Speicherfreigabe in Google Colab
 
     print(f"ROC-Kurve wurde gespeichert unter: {save_path}")
     print(f"ROC-AUC: {roc_auc:.4f}")

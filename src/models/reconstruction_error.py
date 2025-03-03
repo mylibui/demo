@@ -7,13 +7,10 @@ from .supervised_vae import SupervisedVAE
 from .unsupervised_ae import UnsupervisedAE
 from .unsupervised_vae import UnsupervisedVAE
 
+
 def calculate_reconstruction_error(
-    model: Union['UnsupervisedAE'
-                 , 'UnsupervisedVAE'
-                 , 'SupervisedAE'
-                 , 'SupervisedVAE'
-                 ],
-    X: np.ndarray
+    model: Union["UnsupervisedAE", "UnsupervisedVAE", "SupervisedAE", "SupervisedVAE"],
+    X: np.ndarray,
 ) -> np.ndarray:
     """
     Berechnet den Rekonstruktionsfehler (MSE) für ein Modell.
@@ -31,13 +28,19 @@ def calculate_reconstruction_error(
     """
     # Rekonstruktion basierend auf Modelltyp
     if isinstance(model, UnsupervisedAE):
-        reconstructed = model(X, training=False)  # Nur rekonstruierte Daten für UnsupervisedAE
+        reconstructed = model(
+            X, training=False
+        )  # Nur rekonstruierte Daten für UnsupervisedAE
     elif isinstance(model, UnsupervisedVAE):
-        reconstructed, _, _ = model(X, training=False)  # Ignoriere z_mean und z_log_var, nehme nur rekonstruiert
+        reconstructed, _, _ = model(
+            X, training=False
+        )  # Ignoriere z_mean und z_log_var, nehme nur rekonstruiert
     elif isinstance(model, SupervisedAE):
         reconstructed, _ = model(X, training=False)  # Ignoriere Klassifikationsausgabe
     elif isinstance(model, SupervisedVAE):
-        reconstructed, _, _, _ = model(X, training=False)  # Ignoriere z_mean, z_log_var und Klassifikation
+        reconstructed, _, _, _ = model(
+            X, training=False
+        )  # Ignoriere z_mean, z_log_var und Klassifikation
 
     # Berechnung des MSE pro Sample
     reconstruction_error = tf.reduce_mean(tf.square(X - reconstructed), axis=-1)
